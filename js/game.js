@@ -1,24 +1,80 @@
+//This remake was inspired the script here: http://jsfiddle.net/rtoal/5wKfF/
 document.onreadystatechange = function () {
     var state = document.readyState;
     if (state == 'complete') {
         // Place all your clicking logic here.
 
-        // function startGame() {
-        //     //initiates a new game
-        // }
+        var squares = []; //will contain each td item (cell) with a textNode for the value
+        var winningValues = [14, 112, 896, 146, 292, 584, 546, 168];
+        var scoreGreen = 0;
+        var scoreYellow = 0;
+        var greenX = "X";
+        var yellowO = "O";
+        var currTurn = "green";
+        var EMPTY = "\xA0";
+        var maxMoves = 9;
+        var numMoves = 0;
 
-        // function createTable() {
-        //     var tbl = document.createElement('table');
-        //     for (i = 0; i < 3; i++) {
-        //         var row = document.createElement('tr');
-        //         for (j = 0; j < 3; j++) {
-        //             var cell = document.createElement('td');
+        function startNewGame() {
+            var i;
+            for (i = 0; i < squares.length; i++) {
+                squares[i].firstChild.nodeValue = EMPTY;
+            }
 
-        //         }
-        //     }
-        // }
+            scoreYellow = 0;
+            scoreGreen = 0;
+            numMoves = 0;
+            currTurn = "green";
+        }
 
-        play = function () {
+        function set() {
+            //sets a square on the board
+            var currVal = this.firstChild.nodeValue;
+            console.log(currVal);
+            if (currVal !== EMPTY) {
+                return;
+            } else if (currTurn === "green") {
+                this.firstChild.nodeValue = "X";
+                scoreGreen += squareValue(this.indicator);
+                currTurn = "yellow";
+            } else {
+                this.firstChild.nodeValue = "O";
+                scoreYellow += squareValue(this.indicator);
+                currTurn = "green";
+            }
+
+            numMoves ++;
+            if (gameOver()) {
+                endGame();
+            }
+        }
+
+        function gameOver() {
+            if ($.inArray(scoreYellow, winningValues) !== -1) {
+                alert("Yellow wins!");
+                return true;
+            } else if ($.inArray(scoreGreen, winningValues) !== -1) {
+                alert("Green wins!");
+                return true;
+            } else if (numMoves === maxMoves) {
+                alert("We have a draw!");
+                return true;
+            }
+            return false;
+        }
+
+        function endGame() {
+            startNewGame();
+        }
+
+        function squareValue(x) {
+            if (x === 1) {
+                return 2;
+            }
+            return 2 * squareValue(x - 1);
+        }
+
+        function play() {
             var board = document.createElement("table"),
                 indicator = 1,
                 i, j,
@@ -35,33 +91,21 @@ document.onreadystatechange = function () {
                                 "align": 'center',
                                 "valign": 'center'});
                     cell.indicator = indicator;
-                    //cell.onclick = set;
+                    cell.onclick = set;
                     $(cell).append(document.createTextNode(""));
                     $(row).append(cell);
-                    //squares.push(cell);
-                    indicator += indicator;
+                    squares.push(cell);
+                    indicator += 1;
                 }
             }
 
             // Attach under tictactoe if present, otherwise to body.
-            parent = document.getElementById("board") || document.body;
-            parent.appendChild(board);
-            //startNewGame();
+            parent = document.getElementById("board");
+            $(parent).append(board);
+            startNewGame();
         };
 
         play();
 
     }
 };
-
-// This will help you with finding how much to scroll the window.
-// elem is DOM element
-function findPos(elem) {
-    var top = 0;
-    if (elem.offsetParent) {
-        do {
-            top += elem.offsetTop;
-        } while (elem = elem.offsetParent);
-        return [top];
-    }
-}
