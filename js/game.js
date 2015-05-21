@@ -119,6 +119,11 @@ document.onreadystatechange = function () {
          */
         function gameOver() {
             var currVal;
+
+            if (numMoves === maxMoves) {
+                alert("We have a draw!");
+                return true;
+            }
             if (currTurn === "green") {
                 var i;
                 for (i = 0; i < winningValues.length; i++) {
@@ -137,9 +142,6 @@ document.onreadystatechange = function () {
                         return true;
                     }
                 }
-            } else if (numMoves === maxMoves) {
-                alert("We have a draw!");
-                return true;
             }
             return false;
         }
