@@ -14,7 +14,8 @@ document.onreadystatechange = function () {
             ,EMPTY = "\xA0"
             ,maxMoves = 9
             ,numMoves = 0
-            ,activeAI = false;
+            ,activeAI = false
+            ,endGameMessage = "We have a draw!";
 
         /* Empties the game board by setting each of the firstChild.nodeValues
          * to EMPTY and resets all of the score and turn variables.
@@ -40,6 +41,14 @@ document.onreadystatechange = function () {
                 currTurn = GREEN;
             }
          }
+
+        /* Takes in a current side and returns the opposite side. */
+        function opposite(player) {
+            if (player === GREEN) {
+                return YELLOW;
+            }
+            return GREEN;
+        }
 
         /* Randomly select a square to take a turn on. */
         function AIturn() {
@@ -79,6 +88,7 @@ document.onreadystatechange = function () {
         function endTurn() {
             numMoves ++;
             if (gameOver()) {
+                alert(endGameMessage);
                 endGame();
                 return;
             } else {
@@ -118,33 +128,53 @@ document.onreadystatechange = function () {
          * array "winningValues". Else returns false.
          */
         function gameOver() {
-            var currVal;
+            var currVal, greenStatus, yellowStatus;
+            greenStatus = hasWon(GREEN);
+            yellowStatus = hasWon(YELLOW);
 
-            if (currTurn === GREEN) {
-                var i;
-                for (i = 0; i < winningValues.length; i++) {
-                    currVal = winningValues[i];
-                    if ((currVal & scoreGreen) === currVal) {
-                        alert("Green wins!");
-                        return true;
-                    }
+            if ((currTurn === GREEN) && (numMoves !== maxMoves)) {
+                if (greenStatus) {
+                    endGameMessage = "Green wins!";
+                    return true;
                 }
-            } else if (currTurn === YELLOW) {
-                var j;
-                for (var j = 0; j < winningValues.length; j++) {
-                    currVal = winningValues[j];
-                    if ((currVal & scoreYellow) === currVal) {
-                        alert("Yellow wins!");
-                        return true;
-                    }
+            } else if ((currTurn === YELLOW) && (numMoves !== maxMoves)) {
+                if (yellowStatus) {
+                    endGameMessage = "Yellow wins!";
+                    return true;
                 }
             }
 
             if (numMoves === maxMoves) {
-                alert("We have a draw!");
+                endGameMessage = "We have a draw!";
+
+                if (greenStatus) {
+                    endGameMessage = "Green wins!";
+                } else if (yellowStatus) {
+                    endGameMessage = "Yellow wins!";
+                }
+
                 return true;
             }
 
+            return false;
+        }
+
+        /* Returns true if player is in a winning state. */
+        function hasWon(player) {
+            var i, score;
+
+            if (player === GREEN) {
+                score = scoreGreen;
+            } else {
+                score = scoreYellow;
+            }
+
+            for (i = 0; i < winningValues.length; i++) {
+                currVal = winningValues[i];
+                if ((currVal & score) === currVal) {
+                    return true;
+                }
+            }
             return false;
         }
 
