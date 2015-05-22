@@ -10,7 +10,7 @@ document.onreadystatechange = function () {
             ,scoreYellow = 0
             ,GREEN = "X"
             ,YELLOW = "O"
-            ,currTurn = "green" //human player will always start green
+            ,currTurn = GREEN //human player will always start green
             ,EMPTY = "\xA0"
             ,maxMoves = 9
             ,numMoves = 0
@@ -28,16 +28,16 @@ document.onreadystatechange = function () {
             scoreYellow = 0;
             scoreGreen = 0;
             numMoves = 0;
-            currTurn = "green";
+            currTurn = GREEN;
         }
 
         /* Switches turns. If it is 'green' make it 'yellow'
          * and visa-versa. */
         function switchSides(currSide) {
-            if (currSide === "green") {
-                currTurn = "yellow";
+            if (currSide === GREEN) {
+                currTurn = YELLOW;
             } else {
-                currTurn = "green";
+                currTurn = GREEN;
             }
          }
 
@@ -95,7 +95,7 @@ document.onreadystatechange = function () {
             console.log(currVal);
             if (currVal !== EMPTY) {
                 return;
-            } else if (currTurn === "green") {
+            } else if (currTurn === GREEN) {
                 this.firstChild.nodeValue = GREEN;
                 scoreGreen += squareValue(this.indicator);
             } else {
@@ -104,7 +104,7 @@ document.onreadystatechange = function () {
             }
 
             endTurn();
-            if (activeAI && (currTurn === "yellow")) {
+            if (activeAI && (currTurn === YELLOW)) {
                 console.log("yoooo")
                 AIturn();
             }
@@ -120,11 +120,7 @@ document.onreadystatechange = function () {
         function gameOver() {
             var currVal;
 
-            if (numMoves === maxMoves) {
-                alert("We have a draw!");
-                return true;
-            }
-            if (currTurn === "green") {
+            if (currTurn === GREEN) {
                 var i;
                 for (i = 0; i < winningValues.length; i++) {
                     currVal = winningValues[i];
@@ -133,7 +129,7 @@ document.onreadystatechange = function () {
                         return true;
                     }
                 }
-            } else if (currTurn === "yellow") {
+            } else if (currTurn === YELLOW) {
                 var j;
                 for (var j = 0; j < winningValues.length; j++) {
                     currVal = winningValues[j];
@@ -143,6 +139,12 @@ document.onreadystatechange = function () {
                     }
                 }
             }
+
+            if (numMoves === maxMoves) {
+                alert("We have a draw!");
+                return true;
+            }
+
             return false;
         }
 
