@@ -239,7 +239,7 @@ document.onreadystatechange = function () {
             }
 
             if ((us === 2) && (blanks === 1)) {
-                return 500;
+                return 3000;
             } else if ((them == 2) && (blanks === 1)) {
                 return -1000;
             }
@@ -262,7 +262,7 @@ document.onreadystatechange = function () {
                 }
             }
             if ((us === 1) && (them === 2)) {
-                return 300;
+                return 3000;
             }
             return 0;
         }
@@ -383,7 +383,7 @@ document.onreadystatechange = function () {
             //     currVal = squares[randIndex].firstChild.nodeValue;
             // }
             // console.log("we made it!");
-            bestMove = findBestMove(YELLOW, 1, Number.MAX_SAFE_INTEGER, []);
+            bestMove = findBestMove(YELLOW, 4, Number.MAX_SAFE_INTEGER, []);
             bestIndex = bestMove.squareIndex;
             AIset(bestIndex);
         }
