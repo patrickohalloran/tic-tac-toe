@@ -50,9 +50,9 @@ document.onreadystatechange = function () {
                 return new boardMove(0, 0); //this is the tie case
             } else if (depth === 0) {
                 var position = staticEval(side, cutoff);
-                smartSet(position);
+                smartSet(side, position);
                 var val = heuristic(side);
-                undo(position);
+                undo(side, position);
                 return new boardMove(position, val);
             }
 
@@ -63,12 +63,12 @@ document.onreadystatechange = function () {
                 var currVal = currSquare.firstChild.nodeValue;
                 if (currVal === EMPTY) {
                     var M = new boardMove(i, -Number.MAX_SAFE_INTEGER); //need + 1 here??
-                    smartSet(i);
+                    smartSet(side, i);
                     var reply = findBestMove(opposite(side), depth - 1,
                         -bestSoFar.score, []);
-                    var responseValue = heuristic(opposite(side));
+                    var responseValue = reply.score;
                     var response = new boardMove(reply.squareIndex, responseValue);
-                    undo(i);
+                    undo(side, i);
                     moves.push(M);
                     if (-response.score > bestSoFar.score) {
                         M.score = -response.score;
@@ -97,14 +97,16 @@ document.onreadystatechange = function () {
         /* Returns the location of the best square we can go to. */
         function staticEval(side, cutoff) {
             var bestSoFar = new boardMove(getFirstPossibleMove(side), -Number.MAX_SAFE_INTEGER); //need +1??
+            var bestSoFarOpp = new boardMove(getFirstPossibleMove(side), Number.MAX_SAFE_INTEGER);
+
             var currSquare, currVal, tempBoardVal;
             for (var i = 0; i < squares.length; i++) {
                 currSquare = squares[i];
                 currVal = currSquare.firstChild.nodeValue;
                 if (currVal === EMPTY) {
-                    smartSet(i);
+                    smartSet(side, i);
                     tempBoardVal = heuristic(side);
-                    undo(i);
+                    undo(side, i);
                     if (side === YELLOW) {
                         if (tempBoardVal > bestSoFar.score) {
                             bestSoFar.squareIndex = i;
@@ -114,9 +116,9 @@ document.onreadystatechange = function () {
                             }
                         }
                     } else if (side === GREEN) {
-                        if (-tempBoardVal > bestSoFar.score) {
-                            bestSoFar.squareIndex = i;
-                            bestSoFar.score = -tempBoardVal;
+                        if (-tempBoardVal < bestSoFarOpp.score) { //changed from -tempBoardVal > bestSoFar.score
+                            bestSoFarOpp.squareIndex = i;
+                            bestSoFarOpp.score = -tempBoardVal;
                             if (-tempBoardVal >= cutoff) {
                                 break;
                             }
@@ -124,7 +126,11 @@ document.onreadystatechange = function () {
                     }
                 }
             }
-            return bestSoFar.squareIndex;
+
+            if (side === YELLOW) {
+                return bestSoFar.squareIndex;
+            }
+            return bestSoFarOpp.squareIndex;
         }
 
         /* Returns the "value" of the current board at a given state
@@ -222,7 +228,7 @@ document.onreadystatechange = function () {
             var us = them = blanks = 0;
             var currVal;
             for (var i = 0; i < cells.length; i++) {
-                currVal == cells[i];
+                currVal = cells[i];
                 if (currVal === side) {
                     us ++;
                 } else if (currVal === opposite(side)) {
@@ -275,24 +281,34 @@ document.onreadystatechange = function () {
         /* Smart AI set function. Takes in a square index (0-8) and
          * sets the value of the firstChild.nodeValue to YELLOW.
          */
-        function smartSet(squareIndex) {
+        function smartSet(side, squareIndex) {
             var currSquare, currIndicator;
             currSquare = squares[squareIndex];
             currIndicator = currSquare.indicator;
-            currSquare.firstChild.nodeValue = YELLOW;
-            scoreYellow += squareValue(currIndicator);
+            currSquare.firstChild.nodeValue = side;
+
+            if (side === GREEN) {
+                scoreGreen += squareValue(currIndicator);
+            } else {
+                scoreYellow += squareValue(currIndicator);
+            }
             numMoves ++;
         }
 
         /* Performs an "undo" on the last move and adjusts the scores
          * for both sides accordingly. Also subtracts 1 from numMoves.
          */
-        function undo(squareIndex) {
+        function undo(side, squareIndex) {
             var currSquare, currIndicator;
             currSquare = squares[squareIndex];
             currIndicator = currSquare.indicator;
             currSquare.firstChild.nodeValue = EMPTY;
-            scoreYellow -= squareValue(currIndicator);
+
+            if (side === GREEN) {
+                scoreGreen -= squareValue(currIndicator);
+            } else {
+                scoreYellow -= squareValue(currIndicator);
+            }
             numMoves --;
         }
 
@@ -367,7 +383,7 @@ document.onreadystatechange = function () {
             //     currVal = squares[randIndex].firstChild.nodeValue;
             // }
             // console.log("we made it!");
-            bestMove = findBestMove(YELLOW, 4, Number.MAX_SAFE_INTEGER, []);
+            bestMove = findBestMove(YELLOW, 1, Number.MAX_SAFE_INTEGER, []);
             bestIndex = bestMove.squareIndex;
             AIset(bestIndex);
         }
