@@ -3,6 +3,19 @@ document.onreadystatechange = function () {
     var state = document.readyState;
     if (state == 'complete') {
 
+        var squares = [] //will contain each td item (cell) with a textNode for the value
+            ,winningValues = [14, 112, 896, 146, 292, 584, 546, 168]
+            ,scoreGreen = 0
+            ,scoreYellow = 0
+            ,GREEN = "X"
+            ,YELLOW = "O"
+            ,currTurn = GREEN //human player will always start green
+            ,EMPTY = "\xA0"
+            ,maxMoves = 9
+            ,numMoves = 0
+            ,activeAI = false
+            ,endGameMessage = "We have a draw!";
+
 
         /* The AI is below. */
 
@@ -26,13 +39,13 @@ document.onreadystatechange = function () {
             yellowWins = hasWon(YELLOW);
 
             if ((side === GREEN) && greenWins) {
-                return new boardMove(0, Number.MAX_VALUE);
+                return new boardMove(0, Number.MAX_SAFE_INTEGER);
             } else if ((side === GREEN) && yellowWins) {
-                return new boardMove(0, Number.MIN_VALUE + 1); //maybe do + 1 here??
+                return new boardMove(0, -Number.MAX_SAFE_INTEGER); //maybe do + 1 here??
             } else if ((side === YELLOW) && yellowWins) {
-                return new boardMove(0, Number.MAX_VALUE);
+                return new boardMove(0, Number.MAX_SAFE_INTEGER);
             } else if ((side === YELLOW) && greenWins) {
-                return new boardMove(0, Number.MIN_VALUE + 1); //maybe do + 1 here too??
+                return new boardMove(0, -Number.MAX_SAFE_INTEGER); //maybe do + 1 here too??
             } else if (numMoves === maxMoves) {
                 return new boardMove(0, 0); //this is the tie case
             } else if (depth === 0) {
@@ -44,12 +57,12 @@ document.onreadystatechange = function () {
             }
 
             var bestSoFar = new boardMove(getFirstPossibleMove(side)
-                    , Number.MIN_VALUE + 1); //needs to be Number.MIN_VALUE + 1 +1??
+                    , -Number.MAX_SAFE_INTEGER); //needs to be -Number.MAX_SAFE_INTEGER +1??
             for (var i = 0; i < squares.length; i++) {
                 var currSquare = squares[i];
                 var currVal = currSquare.firstChild.nodeValue;
                 if (currVal === EMPTY) {
-                    var M = new boardMove(i, Number.MIN_VALUE + 1); //need + 1 here??
+                    var M = new boardMove(i, -Number.MAX_SAFE_INTEGER); //need + 1 here??
                     smartSet(i);
                     var reply = findBestMove(opposite(side), depth - 1,
                         -bestSoFar.score, []);
@@ -68,7 +81,7 @@ document.onreadystatechange = function () {
             }
 
             var moveToChoose = 0;
-            var maxValSeen = Number.MIN_VALUE + 1; //need + 1 here??
+            var maxValSeen = -Number.MAX_SAFE_INTEGER; //need + 1 here??
             var currVal;
             for (var i = 0; i < moves.length; i++) {
                 currVal = moves[i].score;
@@ -83,7 +96,7 @@ document.onreadystatechange = function () {
 
         /* Returns the location of the best square we can go to. */
         function staticEval(side, cutoff) {
-            var bestSoFar = new boardMove(getFirstPossibleMove(side), Number.MIN_VALUE + 1); //need +1??
+            var bestSoFar = new boardMove(getFirstPossibleMove(side), -Number.MAX_SAFE_INTEGER); //need +1??
             var currSquare, currVal, tempBoardVal;
             for (var i = 0; i < squares.length; i++) {
                 currSquare = squares[i];
@@ -100,13 +113,13 @@ document.onreadystatechange = function () {
                                 break;
                             }
                         }
-                    }
-                } else if (side === GREEN) {
-                    if (-tempBoardVal > bestSoFar.score) {
-                        bestSoFar.squareIndex = i;
-                        bestSoFar.score = -tempBoardVal;
-                        if (-tempBoardVal >= cutoff) {
-                            break;
+                    } else if (side === GREEN) {
+                        if (-tempBoardVal > bestSoFar.score) {
+                            bestSoFar.squareIndex = i;
+                            bestSoFar.score = -tempBoardVal;
+                            if (-tempBoardVal >= cutoff) {
+                                break;
+                            }
                         }
                     }
                 }
@@ -120,13 +133,143 @@ document.onreadystatechange = function () {
         function heuristic(side) {
             var howGood = 0;
             if ((side === GREEN) && hasWon(side)) {
-                return Number.MIN_VALUE + 1 //need + 1??
+                return -Number.MAX_SAFE_INTEGER; //need + 1??
             } else if ((side === YELLOW) && hasWon(side)) {
-                return Number.MAX_VALUE;
+                return Number.MAX_SAFE_INTEGER;
             } else {
-                return 0;
+                var doubles = corners = middle = sides = tie = blocks = 0;
+                var sq0, sq1, sq2, sq3, sq4, sq5, sq6, sq7, sq8;
+                sq0 = squares[0];
+                sq1 = squares[1];
+                sq2 = squares[2];
+                sq3 = squares[3];
+                sq4 = squares[4];
+                sq5 = squares[5];
+                sq6 = squares[6];
+                sq7 = squares[7];
+                sq8 = squares[8];
+
+                val0 = sq0.firstChild.nodeValue;
+                val1 = sq1.firstChild.nodeValue;
+                val2 = sq2.firstChild.nodeValue;
+                val3 = sq3.firstChild.nodeValue;
+                val4 = sq4.firstChild.nodeValue;
+                val5 = sq5.firstChild.nodeValue;
+                val6 = sq6.firstChild.nodeValue;
+                val7 = sq7.firstChild.nodeValue;
+                val8 = sq8.firstChild.nodeValue;
+
+                if (val4 === side) { //if we own the middle
+                    middle += 100000;
+                }
+                if (val0 === side) { //check ya corners
+                    corners += 50;
+                }
+                if (val2 === side) { //check ya corners
+                    corners += 50;
+                }
+                if (val6 === side) { //check ya corners
+                    corners += 50;
+                }
+                if (val8 === side) { //check ya corners
+                    corners += 50;
+                }
+                if (val1 === side) { //check sides
+                    sides += 25;
+                }
+                if (val3 === side) { //check sides
+                    sides += 25;
+                }
+                if (val5 === side) { //check sides
+                    sides += 25;
+                }
+                if (val7 === side) { //check sides
+                    sides += 25;
+                }
+
+                doubles += countDouble(side, [val0, val1, val2]);
+                doubles += countDouble(side, [val3, val4, val5]);
+                doubles += countDouble(side, [val6, val7, val8]);
+                doubles += countDouble(side, [val0, val3, val6]);
+                doubles += countDouble(side, [val1, val4, val7]);
+                doubles += countDouble(side, [val2, val5, val8]);
+                doubles += countDouble(side, [val0, val4, val8]);
+                doubles += countDouble(side, [val2, val4, val6]);
+
+                blocks += countBlocks(side, [val0, val1, val2]);
+                blocks += countBlocks(side, [val3, val4, val5]);
+                blocks += countBlocks(side, [val6, val7, val8]);
+                blocks += countBlocks(side, [val0, val3, val6]);
+                blocks += countBlocks(side, [val1, val4, val7]);
+                blocks += countBlocks(side, [val2, val5, val8]);
+                blocks += countBlocks(side, [val0, val4, val8]);
+                blocks += countBlocks(side, [val2, val4, val6]);
+
+                tie += countTie([val0, val1, val2, val3, val4, val5, val6, val7, val8]);
+
+                return doubles + corners + sides + middle + tie + blocks;
+
             }
 
+        }
+
+        /* Counts the number of consecutive three squares where a side has
+         * two spots occupied and the third remaining spot is EMPTY.
+         * Returns the value of a double if it is there. 500 for us,
+         * -1000 for them.
+         */
+        function countDouble(side, cells) {
+            var us = them = blanks = 0;
+            var currVal;
+            for (var i = 0; i < cells.length; i++) {
+                currVal == cells[i];
+                if (currVal === side) {
+                    us ++;
+                } else if (currVal === opposite(side)) {
+                    them ++;
+                } else {
+                    blanks ++;
+                }
+            }
+
+            if ((us === 2) && (blanks === 1)) {
+                return 500;
+            } else if ((them == 2) && (blanks === 1)) {
+                return -1000;
+            }
+            return 0;
+        }
+
+        /* Counts the number of blocks that we have. Returns 300
+         * if we have one on the opponent. Otherwise return 0. Takes
+         * in an array of nodeValues from the squares.
+         */
+        function countBlocks(side, cells) {
+            var us = them = 0;
+            var currVal;
+            for (var i = 0; i < cells.length; i++) {
+                currVal = cells[i];
+                if (currVal === side) {
+                    us ++;
+                } else if (currVal === opposite(side)) {
+                    them ++;
+                }
+            }
+            if ((us === 1) && (them === 2)) {
+                return 300;
+            }
+            return 0;
+        }
+
+
+        /* If we have a tie, return 300, otherwise return 0. */
+        function countTie(cells) {
+            for (var i = 0; i < cells.length; i++) {
+                if (cells[i] !== EMPTY) {
+                    return 0;
+                }
+            }
+            return 300;
         }
 
         /* Smart AI set function. Takes in a square index (0-8) and
@@ -180,20 +323,6 @@ document.onreadystatechange = function () {
 
 
 
-
-        var squares = [] //will contain each td item (cell) with a textNode for the value
-            ,winningValues = [14, 112, 896, 146, 292, 584, 546, 168]
-            ,scoreGreen = 0
-            ,scoreYellow = 0
-            ,GREEN = "X"
-            ,YELLOW = "O"
-            ,currTurn = GREEN //human player will always start green
-            ,EMPTY = "\xA0"
-            ,maxMoves = 9
-            ,numMoves = 0
-            ,activeAI = false
-            ,endGameMessage = "We have a draw!";
-
         /* Empties the game board by setting each of the firstChild.nodeValues
          * to EMPTY and resets all of the score and turn variables.
          */
@@ -238,7 +367,7 @@ document.onreadystatechange = function () {
             //     currVal = squares[randIndex].firstChild.nodeValue;
             // }
             // console.log("we made it!");
-            bestMove = findBestMove(YELLOW, Number.MAX_VALUE, Number.MAX_VALUE, []);
+            bestMove = findBestMove(YELLOW, 4, Number.MAX_SAFE_INTEGER, []);
             bestIndex = bestMove.squareIndex;
             AIset(bestIndex);
         }
@@ -435,6 +564,7 @@ document.onreadystatechange = function () {
         };
 
         play();
+
 
     }
 };
