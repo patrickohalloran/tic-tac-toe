@@ -14,6 +14,7 @@ document.onreadystatechange = function () {
             ,maxMoves = 9
             ,numMoves = 0
             ,activeAI = false
+            ,AIStart = false
             ,endGameMessage = "We have a draw!";
 
 
@@ -352,6 +353,10 @@ document.onreadystatechange = function () {
             scoreGreen = 0;
             numMoves = 0;
             currTurn = GREEN;
+            if (AIStart && activeAI) {
+                currTurn = YELLOW;
+                AIturn();
+            }
         }
 
         /* Switches turns. If it is 'green' make it 'yellow'
@@ -383,7 +388,7 @@ document.onreadystatechange = function () {
             //     currVal = squares[randIndex].firstChild.nodeValue;
             // }
             // console.log("we made it!");
-            bestMove = findBestMove(YELLOW, 4, Number.MAX_SAFE_INTEGER, []);
+            bestMove = findBestMove(YELLOW, 3, Number.MAX_SAFE_INTEGER, []);
             bestIndex = bestMove.squareIndex;
             AIset(bestIndex);
         }
@@ -522,11 +527,24 @@ document.onreadystatechange = function () {
         /* Sets the game to single-player */
         function singleModeSet() {
             activeAI = true;
+            AIStart = false;
+            startNewGame();
         }
 
         /* Sets the game to two-player */
         function twoModeSet() {
             activeAI = false;
+            AIStart = false;
+            startNewGame();
+        }
+
+        /* Sets the game to single-player an sets variables to allow
+         * the AI to make the first move.
+         */
+        function singleAIModeSet() {
+            activeAI = true;
+            AIStart = true;
+            startNewGame();
         }
 
         /* Begins a game by setting up the game board on the screen
@@ -539,8 +557,8 @@ document.onreadystatechange = function () {
                 i, j,
                 row, cell,
                 parent,
-                singlePlayerButton, twoPlayerButton,
-                singleButtonText, twoButtonText;
+                singlePlayerButton, twoPlayerButton, AIStartButton,
+                singleButtonText, twoButtonText, AIButtonText;
             board.border = 1;
             for (i = 0; i < 3; i += 1) {
                 row = document.createElement("tr");
@@ -563,7 +581,7 @@ document.onreadystatechange = function () {
             parent = document.getElementById("board");
             $(parent).append(board);
             singlePlayerButton = document.createElement("BUTTON");
-            singleButtonText = document.createTextNode("Single Player");
+            singleButtonText = document.createTextNode("Single Player - ME");
             $(singlePlayerButton).append(singleButtonText);
             $(singlePlayerButton).click(function() {
                 singleModeSet();
@@ -574,8 +592,15 @@ document.onreadystatechange = function () {
             $(twoPlayerButton).click(function() {
                 twoModeSet();
             });
+            AIStartButton = document.createElement("BUTTON");
+            AIButtonText = document.createTextNode("Single Player - AI");
+            $(AIStartButton).append(AIButtonText);
+            $(AIStartButton).click(function() {
+                singleAIModeSet();
+            });
             $(parent).append(singlePlayerButton);
             $(parent).append(twoPlayerButton);
+            $(parent).append(AIStartButton);
             startNewGame();
         };
 
